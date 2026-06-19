@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerador de Senhas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f0f13;
+      --surface:   #18181f;
+      --surface2:  #22222c;
+      --border:    #2e2e3a;
+      --border2:   #3d3d50;
+      --text:      #e8e8f0;
+      --muted:     #8888a0;
+      --accent:    #7c6af7;
+      --accent-dk: #5a4bd4;
+      --accent-lt: #a89cf9;
+      --weak:      #e24b4a;
+      --fair:      #ef9f27;
+      --good:      #639922;
+      --strong:    #1d9e75;
+      --font-body: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius:    10px;
+      --radius-lg: 14px;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .header-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #7c6af7 0%, #5a4bd4 100%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.75rem;
+    }
+    .header-icon svg { width: 26px; height: 26px; fill: #fff; }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .subtitle {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Password output */
+    .pw-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1rem;
+    }
+    .pw-text {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      word-break: break-all;
+      line-height: 1.5;
+      letter-spacing: 0.04em;
+      min-height: 24px;
+    }
+    .pw-text.placeholder { color: var(--muted); font-weight: 400; font-size: 0.875rem; font-family: var(--font-body); }
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .icon-btn:hover { background: var(--border); color: var(--text); border-color: var(--border2); }
+    .icon-btn:active { transform: scale(0.95); }
+    .icon-btn svg { width: 16px; height: 16px; }
+
+    /* Strength */
+    .strength-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 1.25rem;
+    }
+    .strength-bars {
+      display: flex;
+      gap: 4px;
+      flex: 1;
+    }
+    .seg {
+      flex: 1;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      transition: background 0.3s;
+    }
+    .strength-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      min-width: 70px;
+      text-align: right;
+      color: var(--muted);
+    }
+
+    /* Slider */
+    .slider-section { margin-bottom: 1.25rem; }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+    .slider-title { font-size: 0.875rem; font-weight: 500; color: var(--text); }
+    .slider-val {
+      font-family: var(--font-mono);
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--accent-lt);
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid var(--surface);
+      box-shadow: 0 0 0 2px var(--accent);
+      cursor: pointer;
+      transition: box-shadow 0.15s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 4px rgba(124,106,247,0.25); }
+    input[type="range"]::-moz-range-thumb {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--accent); border: 3px solid var(--surface);
+      cursor: pointer;
+    }
+    .quick-btns {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .qbtn {
+      font-size: 0.75rem;
+      font-weight: 500;
+      font-family: var(--font-mono);
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface2);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .qbtn:hover, .qbtn.active {
+      background: rgba(124,106,247,0.15);
+      border-color: var(--accent);
+      color: var(--accent-lt);
+    }
+
+    /* Options */
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 1.25rem;
+    }
+    .opt-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 11px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      user-select: none;
+    }
+    .opt-card:hover { border-color: var(--border2); }
+    .opt-card.on {
+      border-color: var(--accent);
+      background: rgba(124,106,247,0.08);
+    }
+    .opt-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .opt-card.on .opt-name { color: var(--text); }
+    .opt-name svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .toggle {
+      width: 32px;
+      height: 18px;
+      border-radius: 9px;
+      background: var(--border2);
+      position: relative;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      transition: left 0.2s;
+    }
+    .opt-card.on .toggle { background: var(--accent); }
+    .opt-card.on .toggle::after { left: 17px; }
+
+    /* Generate button */
+    .gen-btn {
+      width: 100%;
+      padding: 13px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      letter-spacing: -0.01em;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .gen-btn:hover { background: var(--accent-dk); }
+    .gen-btn:active { transform: scale(0.99); }
+    .gen-btn svg { width: 18px; height: 18px; }
+
+    /* Action bar */
+    .action-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 0.875rem;
+    }
+    .act-btn {
+      padding: 9px 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--muted);
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .act-btn:hover { background: var(--border); color: var(--text); border-color: var(--border2); }
+    .act-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* History */
+    .history-list { display: flex; flex-direction: column; gap: 6px; }
+    .history-empty { font-size: 0.8125rem; color: var(--muted); text-align: center; padding: 1rem 0; }
+    .hist-item {
+      display: flex;
+      align-items: center;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      gap: 10px;
+      transition: border-color 0.15s;
+    }
+    .hist-item:hover { border-color: var(--border2); }
+    .hist-pw {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .hist-meta { font-size: 0.7rem; color: var(--muted); flex-shrink: 0; }
+    .hist-copy {
+      width: 28px; height: 28px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .hist-copy:hover { background: var(--border); color: var(--text); }
+    .hist-copy svg { width: 13px; height: 13px; }
+
+    /* History header */
+    .hist-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .clear-btn {
+      font-size: 0.75rem;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-body);
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .clear-btn:hover { color: var(--weak); background: rgba(226,75,74,0.1); }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 1.5rem;
+    }
+
+    @media (max-width: 480px) {
+      .options-grid { grid-template-columns: 1fr; }
+      .action-bar { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 1C8.676 1 6 3.676 6 7v1H4a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v1H8V7c0-2.276 1.724-4 4-4zm0 9a2 2 0 0 1 1 3.723V17a1 1 0 0 1-2 0v-1.277A2 2 0 0 1 12 12z"/>
+      </svg>
+    </div>
+    <h1>Gerador de Senhas</h1>
+    <p class="subtitle">Crie senhas seguras e personalizadas em segundos</p>
+  </div>
+
+  <!-- Main card -->
+  <div class="card">
+
+    <!-- Password display -->
+    <div class="pw-box">
+      <div class="pw-text placeholder" id="pw-display">Clique em "Gerar senha" para começar</div>
+      <button class="icon-btn" onclick="copyPw()" title="Copiar senha">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+      </button>
+      <button class="icon-btn" onclick="generate()" title="Nova senha">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Strength bar -->
+    <div class="strength-row">
+      <div class="strength-bars">
+        <div class="seg" id="s1"></div>
+        <div class="seg" id="s2"></div>
+        <div class="seg" id="s3"></div>
+        <div class="seg" id="s4"></div>
+      </div>
+      <span class="strength-label" id="strength-label">— —</span>
+    </div>
+
+    <!-- Length slider -->
+    <div class="slider-section">
+      <div class="slider-header">
+        <span class="slider-title">Comprimento</span>
+        <span class="slider-val" id="len-val">12</span>
+      </div>
+      <input type="range" id="len-slider" min="4" max="64" step="1" value="12"
+             oninput="onLenChange(this.value)" />
+      <div class="quick-btns">
+        <button class="qbtn" onclick="setLen(8)">8</button>
+        <button class="qbtn active" onclick="setLen(12)">12</button>
+        <button class="qbtn" onclick="setLen(16)">16</button>
+        <button class="qbtn" onclick="setLen(24)">24</button>
+        <button class="qbtn" onclick="setLen(32)">32</button>
+        <button class="qbtn" onclick="setLen(64)">64</button>
+      </div>
+    </div>
+
+    <!-- Options -->
+    <div class="section-label">Caracteres incluídos</div>
+    <div class="options-grid">
+      <div class="opt-card on" id="opt-upper" onclick="toggleOpt('upper')">
+        <span class="opt-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20 L12 4 L20 20"/><path d="M6.5 15 L17.5 15"/></svg>
+          Maiúsculas (A–Z)
+        </span>
+        <div class="toggle" id="tog-upper"></div>
+      </div>
+      <div class="opt-card on" id="opt-lower" onclick="toggleOpt('lower')">
+        <span class="opt-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="15" r="4"/><path d="M15 11v8"/></svg>
+          Minúsculas (a–z)
+        </span>
+        <div class="toggle" id="tog-lower"></div>
+      </div>
+      <div class="opt-card on" id="opt-nums" onclick="toggleOpt('nums')">
+        <span class="opt-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg>
+          Números (0–9)
+        </span>
+        <div class="toggle" id="tog-nums"></div>
+      </div>
+      <div class="opt-card" id="opt-syms" onclick="toggleOpt('syms')">
+        <span class="opt-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Símbolos (!@#…)
+        </span>
+        <div class="toggle" id="tog-syms"></div>
+      </div>
+      <div class="opt-card" id="opt-noamb" onclick="toggleOpt('noamb')">
+        <span class="opt-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          Sem ambíguos (0Ol1)
+        </span>
+        <div class="toggle" id="tog-noamb"></div>
+      </div>
+      <div class="opt-card" id="opt-nosim" onclick="toggleOpt('nосим')">
+        <span class="opt-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Sem repetições
+        </span>
+        <div class="toggle" id="tog-nосим"></div>
+      </div>
+    </div>
+
+    <!-- Generate button -->
+    <button class="gen-btn" onclick="generate()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      Gerar senha segura
+    </button>
+
+    <!-- Action bar -->
+    <div class="action-bar">
+      <button class="act-btn" onclick="copyPw()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copiar
+      </button>
+      <button class="act-btn" onclick="downloadPw()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Salvar .txt
+      </button>
+      <button class="act-btn" onclick="generate()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Gerar outra
+      </button>
+    </div>
+  </div>
+
+  <!-- History card -->
+  <div class="card">
+    <div class="hist-header">
+      <div class="section-label" style="margin:0">Histórico desta sessão</div>
+      <button class="clear-btn" onclick="clearHistory()">Limpar tudo</button>
+    </div>
+    <div class="history-list" id="history-list">
+      <p class="history-empty">Nenhuma senha gerada ainda.</p>
+    </div>
+  </div>
+
+  <p class="footer">As senhas são geradas localmente e nunca são enviadas para nenhum servidor.</p>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const opts = {
+    upper: true,
+    lower: true,
+    nums:  true,
+    syms:  false,
+    noamb: false,
+    'nосим': false
+  };
+
+  const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const LOWER = 'abcdefghijklmnopqrstuvwxyz';
+  const NUMS  = '0123456789';
+  const SYMS  = '!@#$%^&*()-_=+[]{}|;:,.<>?';
+  const AMB   = /[0Ol1Il]/g;
+
+  let currentPw = '';
+  let history   = [];
+
+  function getLen() {
+    return parseInt(document.getElementById('len-slider').value);
+  }
+
+  function buildCharset() {
+    let cs = '';
+    if (opts.upper) cs += UPPER;
+    if (opts.lower) cs += LOWER;
+    if (opts.nums)  cs += NUMS;
+    if (opts.syms)  cs += SYMS;
+    if (opts.noamb) cs = cs.replace(AMB, '');
+    return cs || LOWER;
+  }
+
+  function generate() {
+    const cs  = buildCharset();
+    const len = getLen();
+    const arr = new Uint32Array(len);
+    crypto.getRandomValues(arr);
+
+    let pw = '';
+    if (opts['nосим']) {
+      const available = cs.split('');
+      for (let i = 0; i < Math.min(len, available.length); i++) {
+        const idx = arr[i] % available.length;
+        pw += available[idx];
+        available.splice(idx, 1);
+      }
+      while (pw.length < len) pw += cs[Math.floor(Math.random() * cs.length)];
+    } else {
+      for (let i = 0; i < len; i++) pw += cs[arr[i] % cs.length];
+    }
+
+    currentPw = pw;
+    const el = document.getElementById('pw-display');
+    el.textContent = pw;
+    el.classList.remove('placeholder');
+    updateStrength(pw);
+    addHistory(pw, len);
+  }
+
+  function updateStrength(pw) {
+    let score = 0;
+    if (pw.length >= 8)  score++;
+    if (pw.length >= 16) score++;
+    if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score = Math.min(4, score + 1);
+    if (pw.length >= 24) score = Math.min(4, score + 1);
+    score = Math.min(4, score);
+
+    const colors = ['#e24b4a','#ef9f27','#639922','#1d9e75'];
+    const labels = ['Fraca','Média','Boa','Muito forte'];
+    const lbl = document.getElementById('strength-label');
+
+    for (let i = 1; i <= 4; i++) {
+      const seg = document.getElementById('s' + i);
+      seg.style.background = i <= score ? colors[score - 1] : 'var(--border)';
+    }
+
+    if (score > 0) {
+      lbl.textContent = labels[score - 1];
+      lbl.style.color  = colors[score - 1];
+    } else {
+      lbl.textContent = '— —';
+      lbl.style.color  = 'var(--muted)';
+    }
+  }
+
+  function addHistory(pw, len) {
+    const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    history.unshift({ pw, len, time });
+    if (history.length > 10) history.pop();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const el = document.getElementById('history-list');
+    if (!history.length) {
+      el.innerHTML = '<p class="history-empty">Nenhuma senha gerada ainda.</p>';
+      return;
+    }
+    el.innerHTML = history.map(h => `
+      <div class="hist-item">
+        <span class="hist-pw">${escapeHtml(h.pw)}</span>
+        <span class="hist-meta">${h.len} · ${h.time}</span>
+        <button class="hist-copy" onclick="copyText('${escapeAttr(h.pw)}')" title="Copiar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+    `).join('');
+  }
+
+  function clearHistory() {
+    history = [];
+    renderHistory();
+  }
+
+  function copyPw() {
+    if (currentPw) copyText(currentPw);
+    else showToast('Gere uma senha primeiro!');
+  }
+
+  function copyText(txt) {
+    navigator.clipboard.writeText(txt)
+      .then(() => showToast('✓ Copiado!'))
+      .catch(() => showToast('Não foi possível copiar.'));
+  }
+
+  function downloadPw() {
+    if (!currentPw) { showToast('Gere uma senha primeiro!'); return; }
+    const blob = new Blob([currentPw], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'senha.txt';
+    a.click();
+    showToast('Arquivo salvo!');
+  }
+
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  function toggleOpt(key) {
+    const charKeys = ['upper','lower','nums','syms'];
+    const activeChar = charKeys.filter(k => opts[k]);
+    if (charKeys.includes(key) && opts[key] && activeChar.length <= 1) {
+      showToast('Pelo menos um tipo de caractere deve estar ativo!');
+      return;
+    }
+    opts[key] = !opts[key];
+    const card = document.getElementById('opt-' + key);
+    if (opts[key]) card.classList.add('on');
+    else           card.classList.remove('on');
+    if (currentPw) generate();
+  }
+
+  function onLenChange(val) {
+    document.getElementById('len-val').textContent = val;
+    updateQuickBtns(parseInt(val));
+    if (currentPw) generate();
+  }
+
+  function setLen(v) {
+    document.getElementById('len-slider').value = v;
+    document.getElementById('len-val').textContent = v;
+    updateQuickBtns(v);
+    if (currentPw) generate();
+  }
+
+  function updateQuickBtns(v) {
+    document.querySelectorAll('.qbtn').forEach(b => {
+      b.classList.toggle('active', parseInt(b.textContent) === v);
+    });
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function escapeAttr(str) {
+    return str.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+  }
+
+  setLen(12);
+</script>
+</body>
+</html>
